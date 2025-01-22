@@ -93,7 +93,8 @@ async def search_trips(
             logger.error("Travel API not initialized")
             raise HTTPException(status_code=503, detail="Service not initialized")
 
-        trip_packages = router.travel_api.search_engine.search_trips(
+        # Add await here since search_trips is async
+        trip_packages = await router.travel_api.search_engine.search_trips(
             origin=origin.upper(),
             nights=int(nights),
             budget=float(budget)

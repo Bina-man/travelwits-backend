@@ -4,5 +4,7 @@ python-multipart>=0.0.6
 pydantic>=2.5.3
 starlette>=0.36.1
 typing-extensions>=4.9.0
-python-dotenv>=1.0.0  # for environment variables
-loguru>=0.7.2         # for better logging
+python-dotenv>=1.0.0
+loguru>=0.7.2
+redis==5.0.1
+numpy>=1.26.0  # This version is compatible with Python 3.12
