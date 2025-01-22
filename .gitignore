@@ -57,8 +57,8 @@ coverage.xml
 .hypothesis/
 
 # Project specific
-data/*.json
-!data/sample_*.json
+# data/*.json
+# !data/sample_*.json
 
 # Temporary files
 .tmp/
