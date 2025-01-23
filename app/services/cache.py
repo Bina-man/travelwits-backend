@@ -1,29 +1,16 @@
 from functools import wraps
 import json
-from typing import Optional, Any, Callable
+from typing import Optional, Callable
 import redis
 import logging
 import hashlib
 from fastapi import HTTPException
+from ..api.serializers import TravelSerializer
 
 logger = logging.getLogger(__name__)
 
 class TravelCache:
-    """
-    Redis-based caching system for travel search results.
-    
-    Provides caching functionality with TTL support and pattern-based invalidation.
-    Uses Redis as the underlying cache storage system.
-    """
-
     def __init__(self, redis_url: str = "redis://localhost:6379/0", default_ttl: int = 3600):
-        """
-        Initialize Redis cache with connection and default TTL.
-
-        Args:
-            redis_url: Redis connection URL
-            default_ttl: Default time-to-live in seconds for cached items
-        """
         try:
             self.redis_client = redis.from_url(redis_url)
             self.default_ttl = default_ttl
@@ -32,17 +19,6 @@ class TravelCache:
             self.redis_client = None
 
     def _generate_cache_key(self, prefix: str, *args, **kwargs) -> str:
-        """
-        Generate a unique cache key based on function arguments.
-
-        Args:
-            prefix: Prefix for the cache key
-            *args: Positional arguments to include in key generation
-            **kwargs: Keyword arguments to include in key generation
-
-        Returns:
-            str: MD5 hash of the generated key string
-        """
         key_parts = [prefix]
         if args:
             key_parts.append(str(args))
@@ -54,67 +30,45 @@ class TravelCache:
         return hashlib.md5(key_string.encode()).hexdigest()
 
     def cache_decorator(self, ttl: Optional[int] = None, prefix: Optional[str] = None):
-        """
-        Decorator for caching function results.
-
-        Args:
-            ttl: Time-to-live in seconds for cached results
-            prefix: Custom prefix for cache keys
-
-        Returns:
-            Callable: Decorated function with caching capability
-        """
         def decorator(func: Callable):
             @wraps(func)
             async def wrapper(*args, **kwargs):
                 if not self.redis_client:
-                    return await func(*args, **kwargs)
+                    result = await func(*args, **kwargs)
+                    return [TravelSerializer.format_trip_package(trip) for trip in result]
 
                 cache_prefix = prefix or func.__name__
                 cache_key = self._generate_cache_key(cache_prefix, *args, **kwargs)
                 
                 try:
-                    # Try to get cached result
                     cached_result = self.redis_client.get(cache_key)
                     if cached_result:
                         logger.debug(f"Cache hit for key: {cache_key}")
                         return json.loads(cached_result)
                 except redis.RedisError as e:
                     logger.error(f"Redis error while getting cached value: {str(e)}")
-                    return await func(*args, **kwargs)
+                    result = await func(*args, **kwargs)
+                    return [TravelSerializer.format_trip_package(trip) for trip in result]
                 
-                # Execute function if cache miss
                 logger.debug(f"Cache miss for key: {cache_key}")
                 result = await func(*args, **kwargs)
+                serialized_result = [TravelSerializer.format_trip_package(trip) for trip in result]
                 
-                # Cache the result
                 try:
                     cache_ttl = ttl or self.default_ttl
                     self.redis_client.setex(
                         cache_key,
                         cache_ttl,
-                        json.dumps(result)
+                        json.dumps(serialized_result)
                     )
                 except (redis.RedisError, TypeError) as e:
                     logger.error(f"Failed to cache result: {str(e)}")
                 
-                return result
+                return serialized_result
             return wrapper
         return decorator
 
     def invalidate_pattern(self, pattern: str) -> int:
-        """
-        Invalidate all cache keys matching the given pattern.
-
-        Args:
-            pattern: Redis key pattern to match for invalidation
-
-        Returns:
-            int: Number of keys invalidated
-
-        Raises:
-            HTTPException: If cache invalidation fails
-        """
         if not self.redis_client:
             return 0
             

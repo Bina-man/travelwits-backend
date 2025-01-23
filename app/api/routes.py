@@ -28,30 +28,22 @@ async def search_trips(
     nights: int = Query(..., ge=1, le=30),
     budget: float = Query(..., ge=0)
 ):
-    start_time = time.time()
     try:
         logger.info(f"Searching trips for origin={origin}, nights={nights}, budget={budget}")
         
         if not hasattr(router, "travel_api"):
             raise HTTPException(status_code=503, detail="Service not initialized")
 
-        trip_packages = await router.travel_api.search_engine.search_trips(
+        return await router.travel_api.search_engine.search_trips(
             origin=origin.upper(),
             nights=nights,
             budget=budget
         )
-        
-        if not trip_packages:
-            logger.warning(f"No trips found for search criteria")
-            raise HTTPException(status_code=404, detail="No trips found within budget")
-        
-        return [TravelSerializer.format_trip_package(trip) for trip in trip_packages]
 
-    except HTTPException as he:
-        raise he
     except Exception as e:
         logger.error(f"Error processing request: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.get("/multi-city-search")
 async def search_multi_city_trips(request: MultiCitySearchRequest):
