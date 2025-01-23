@@ -4,6 +4,13 @@ from typing import List, Dict, Any
 from ..models.domain import Flight, Hotel, TripPackage
 from .cache import TravelCache
 from enum import Enum
+from ..config.config import (
+    SCORE_WEIGHTS,
+    FLIGHT_TIME_SCORES,
+    FLIGHT_HOURS,
+    STOP_PENALTY,
+    HOTEL_SCORE_FACTORS
+)
 
 logger = logging.getLogger(__name__)
 
@@ -75,54 +82,59 @@ class TravelSearchEngine:
 
         logger.debug(f"Built hotel index for {len(self.hotels_by_city)} cities")
 
-    def _calculate_trip_score(
-        self, trip: TripPackage, context: Dict[str, Any]
-    ) -> float:
-        """
-        Calculate a comprehensive score for a trip package.
-
-        Args:
-            trip: TripPackage to score
-            context: Dictionary containing scoring context (averages, maximums, etc.)
-
-        Returns:
-            float: Normalized score between 0 and 1
-        """
-        scores = {}
-
-        # Price Efficiency Score
-        total_price = trip.total_cost
-        avg_price = context.get("avg_price", total_price)
-        price_ratio = 1 - (total_price / avg_price) if avg_price > 0 else 0
-        scores[ScoreFactors.PRICE_EFFICIENCY] = max(0, min(1, price_ratio + 0.5))
-
-        # Flight Quality Score
-        outbound_score = 1 - (
-            trip.outbound_flight.price
-            / context.get("max_flight_price", trip.outbound_flight.price)
-        )
-        return_score = 1 - (
-            trip.return_flight.price
-            / context.get("max_flight_price", trip.return_flight.price)
-        )
-        scores[ScoreFactors.FLIGHT_QUALITY] = (outbound_score + return_score) / 2
-
-        # Hotel Rating Score
-        hotel_score = (
-            min(1.0, trip.hotel.rating / 5.0) if hasattr(trip.hotel, "rating") else 0.5
-        )
-        scores[ScoreFactors.HOTEL_RATING] = hotel_score
-
-        # Destination Popularity Score
-        dest_popularity = context.get("destination_popularity", {}).get(
-            trip.destination, 0.5
-        )
-        scores[ScoreFactors.DESTINATION_POPULARITY] = dest_popularity
-
-        return sum(
-            scores[factor] * self.weight_config[factor] for factor in ScoreFactors
+    def _calculate_trip_score(self, trip: TripPackage, search_context: Dict) -> float:
+        total_cost = (
+            trip.outbound_flight.price + 
+            trip.return_flight.price + 
+            trip.hotel.price_per_night * trip.nights
         )
 
+        # Price score (0-100)
+        max_cost = search_context['max_flight_price'] * 2 + search_context['max_hotel_price'] * trip.nights
+        price_score = max(0, 100 * (1 - (total_cost / max_cost))) * 1.5  # Amplify price differences
+
+        def get_flight_score(flight) -> float:
+            hour = flight.departure_time.hour
+            
+            # Base time score (0-100)
+            if 8 <= hour <= 11:  # Prime time
+                time_score = 100
+            elif 11 < hour <= 16:  # Good business hours
+                time_score = 80
+            elif 6 <= hour < 8:  # Early morning
+                time_score = 60
+            elif 16 < hour <= 21:  # Evening
+                time_score = 50
+            else:  # Red-eye/late night
+                time_score = 20
+            
+            # Stops penalty
+            stops_penalty = len(flight.stops) * 40
+            return max(0, time_score - stops_penalty)
+
+        outbound_score = get_flight_score(trip.outbound_flight)
+        return_score = get_flight_score(trip.return_flight)
+        flight_score = (outbound_score + return_score) / 2
+
+        # Hotel score (0-100)
+        hotel_score = min(100, (
+            (trip.hotel.stars * 18) +  # Increased weight for stars
+            (trip.hotel.rating * 10) +  # Increased weight for rating
+            (len(trip.hotel.amenities) * 7)  # Increased weight for amenities
+        ))
+
+        weighted_score = (
+            price_score * 0.35 +
+            flight_score * 0.40 +
+            hotel_score * 0.20 +
+            search_context['destination_popularity'].get(trip.destination, 0) * 100 * 0.05
+        )
+
+        # Final normalization to ensure 0-100 range
+        final_score = weighted_score * 1.2  # Scale up final score
+        return round(max(0, min(100, final_score)), 2)
+
+    
     async def search_trips(
         self, origin: str, nights: int, budget: float, result_limit: int = 10
     ) -> List[TripPackage]:
@@ -165,6 +177,7 @@ class TravelSearchEngine:
                     budget,
                 ):
                     score = self._calculate_trip_score(combo, search_context)
+                    combo.score = score 
                     entry = (-score, entry_count, combo)
                     entry_count += 1
 
