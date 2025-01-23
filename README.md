@@ -13,6 +13,9 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install fastapi uvicorn
 
+# Start Redis
+brew services start redis
+
 # Run the server
 uvicorn app.main:app --reload
 ```
