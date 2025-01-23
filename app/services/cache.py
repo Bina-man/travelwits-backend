@@ -7,6 +7,7 @@ import logging
 import hashlib
 from fastapi import HTTPException
 from ..api.serializers import TravelSerializer
+from .search.criteria import SearchCriteria
 
 logger = logging.getLogger(__name__)
 
@@ -18,14 +19,16 @@ class TravelCache:
         except redis.RedisError as e:
             logger.warning(f"Failed to initialize Redis connection: {str(e)}. Caching will be disabled.")
             self.redis_client = None
-
     def _generate_cache_key(self, prefix: str, *args, **kwargs) -> str:
         key_parts = [prefix]
-        if args:
-            key_parts.append(str(args))
-        if kwargs:
-            sorted_kwargs = sorted(kwargs.items())
-            key_parts.append(str(sorted_kwargs))
+        
+        if args and isinstance(args[0], SearchCriteria):
+            criteria = args[0]
+            key_parts.extend([
+                f"origin={criteria.origin}",
+                f"nights={criteria.nights}",
+                f"budget={criteria.budget}"
+            ])
         
         key_string = ":".join(key_parts)
         return hashlib.md5(key_string.encode()).hexdigest()

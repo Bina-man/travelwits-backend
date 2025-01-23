@@ -6,6 +6,7 @@ from ..cache import TravelCache
 from .criteria import SearchCriteria
 from .index_manager import TravelIndexManager
 from ..scoring.trip_scorer import TripScorer
+from .criteria import SearchCriteria
 
 
 logger = logging.getLogger(__name__)
@@ -23,7 +24,7 @@ class TripSearch:
 
     async def search(self, criteria: SearchCriteria) -> List[TripPackage]:
         @self.cache.cache_decorator(ttl=1800, prefix="search_trips")
-        async def _cached_search():
+        async def _cached_search(criteria: SearchCriteria):
             logger.info(
                 f"Starting search: origin={criteria.origin}, "
                 f"nights={criteria.nights}, budget=${criteria.budget:.2f}"
@@ -54,7 +55,7 @@ class TripSearch:
                 trip for _, _, trip in sorted(top_trips, key=lambda x: (-x[0], x[1]))
             ]
 
-        return await _cached_search()
+        return await _cached_search(criteria)
 
     def _prepare_search_context(self, criteria: SearchCriteria) -> Dict[str, Any]:
         flight_prices = [
