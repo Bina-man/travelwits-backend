@@ -1,7 +1,7 @@
 # api/routes.py
 from ..models.multi_city import MultiCityFlight, MultiCitySearchEngine
 from fastapi import APIRouter, HTTPException, Query
-from typing import List, Dict
+from typing import List, Dict, Optional
 import logging
 import time  # Add this import for time.time()
 from datetime import datetime 
@@ -12,12 +12,39 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 class TravelAPI:
+    """
+    Main API handler for travel-related operations.
+    
+    Manages initialization of search engines and provides interface
+    for both single-destination and multi-city travel searches.
+    
+    Attributes:
+        search_engine (TravelSearchEngine): Engine for single-destination searches
+        multi_city_engine (MultiCitySearchEngine): Engine for multi-city searches
+    """
+
     def __init__(self, flights: List[Dict], hotels: List[Dict]):
-        # Initialize both search engines
+        """
+        Initialize both search engines with flight and hotel data.
+        
+        Args:
+            flights: List of raw flight dictionaries
+            hotels: List of raw hotel dictionaries
+        """
         self.search_engine = self._initialize_engine(flights, hotels)
         self.multi_city_engine = self._initialize_multi_city_engine(flights, hotels)
     
     def _initialize_engine(self, raw_flights: List[Dict], raw_hotels: List[Dict]) -> TravelSearchEngine:
+        """
+        Initialize the single-destination search engine.
+        
+        Args:
+            raw_flights: List of flight dictionaries
+            raw_hotels: List of hotel dictionaries
+            
+        Returns:
+            TravelSearchEngine: Initialized search engine
+        """
         flights = [
             Flight(
                 id=f['id'],
@@ -45,7 +72,16 @@ class TravelAPI:
         return TravelSearchEngine(flights, hotels)
     
     def _initialize_multi_city_engine(self, raw_flights: List[Dict], raw_hotels: List[Dict]) -> MultiCitySearchEngine:
-        # Convert raw flights to MultiCityFlight objects
+        """
+        Initialize the multi-city search engine.
+        
+        Args:
+            raw_flights: List of flight dictionaries
+            raw_hotels: List of hotel dictionaries
+            
+        Returns:
+            MultiCitySearchEngine: Initialized multi-city search engine
+        """
         flights = [
             MultiCityFlight(
                 id=f['id'],
@@ -58,13 +94,12 @@ class TravelAPI:
             ) for f in raw_flights
         ]
         
-        # Group hotels by city code
         hotels_by_city = {}
         for h in raw_hotels:
             city_code = h['city_code']
             if city_code not in hotels_by_city:
                 hotels_by_city[city_code] = []
-                
+            
             hotel = Hotel(
                 id=h['id'],
                 name=h['name'],
@@ -211,6 +246,22 @@ async def search_multi_city_trips(
     total_nights: int = Query(..., ge=1, le=30),
     budget: float = Query(..., gt=0)
 ):
+    """
+    Search for multi-city trip packages.
+    
+    Args:
+        origin: Starting airport code (3 letters)
+        must_visit: Comma-separated list of required city codes
+        optional_visit: Comma-separated list of optional city codes
+        total_nights: Total number of nights for the trip (1-30)
+        budget: Maximum total budget
+        
+    Returns:
+        List of matching multi-city trip packages
+        
+    Raises:
+        HTTPException: If service is not initialized or no results found
+    """
     try:
         must_visit_cities = [city.strip().upper() for city in must_visit.split(',')]
         optional_cities = [city.strip().upper() for city in optional_visit.split(',') if city]
@@ -219,12 +270,10 @@ async def search_multi_city_trips(
                    f"must_visit={must_visit_cities}, optional={optional_cities}, "
                    f"nights={total_nights}, budget={budget}")
 
-        # Fix: Changed travel_api to router.travel_api
         if not hasattr(router, "travel_api"):
             logger.error("Travel API not initialized")
             raise HTTPException(status_code=503, detail="Service not initialized")
 
-        # Fix: Changed travel_api to router.travel_api
         trips = router.travel_api.multi_city_engine.search_multi_city_trips(
             origin=origin.upper(),
             must_visit_cities=must_visit_cities,
@@ -236,40 +285,7 @@ async def search_multi_city_trips(
         if not trips:
             raise HTTPException(status_code=404, detail="No valid multi-city trips found")
 
-        # Format results
-        results = []
-        for trip in trips:
-            formatted_trip = {
-                "stays": [
-                    {
-                        "city": stay.city,
-                        "flight": {
-                            "id": stay.arrival_flight.id,
-                            "from": stay.arrival_flight.origin,
-                            "to": stay.arrival_flight.destination,
-                            "departure_time": stay.arrival_flight.departure_time.strftime('%H:%M'),
-                            "arrival_time": stay.arrival_flight.arrival_time.strftime('%H:%M'),
-                            "price": stay.arrival_flight.price,
-                            "stops": stay.arrival_flight.stops
-                        },
-                        "hotel": {
-                            "id": stay.hotel.id,
-                            "name": stay.hotel.name,
-                            "stars": stay.hotel.stars,
-                            "rating": stay.hotel.rating,
-                            "price_per_night": stay.hotel.price_per_night,
-                            "amenities": stay.hotel.amenities
-                        } if stay.hotel else None,
-                        "nights": stay.nights
-                    } for stay in trip
-                ],
-                "total_cost": sum(stay.cost for stay in trip),
-                "total_nights": sum(stay.nights for stay in trip),
-                "cities_visited": [stay.city for stay in trip]
-            }
-            results.append(formatted_trip)
-
-        return results
+        return [format_multi_city_trip(trip) for trip in trips]
 
     except HTTPException as he:
         raise he
@@ -279,3 +295,42 @@ async def search_multi_city_trips(
             status_code=500,
             detail=f"Error processing request: {str(e)}"
         )
+
+def format_multi_city_trip(trip):
+    """
+    Format a multi-city trip for API response.
+    
+    Args:
+        trip: Raw multi-city trip data
+        
+    Returns:
+        Dict: Formatted trip data for API response
+    """
+    return {
+        "stays": [
+            {
+                "city": stay.city,
+                "flight": {
+                    "id": stay.arrival_flight.id,
+                    "from": stay.arrival_flight.origin,
+                    "to": stay.arrival_flight.destination,
+                    "departure_time": stay.arrival_flight.departure_time.strftime('%H:%M'),
+                    "arrival_time": stay.arrival_flight.arrival_time.strftime('%H:%M'),
+                    "price": stay.arrival_flight.price,
+                    "stops": stay.arrival_flight.stops
+                },
+                "hotel": {
+                    "id": stay.hotel.id,
+                    "name": stay.hotel.name,
+                    "stars": stay.hotel.stars,
+                    "rating": stay.hotel.rating,
+                    "price_per_night": stay.hotel.price_per_night,
+                    "amenities": stay.hotel.amenities
+                } if stay.hotel else None,
+                "nights": stay.nights
+            } for stay in trip
+        ],
+        "total_cost": sum(stay.cost for stay in trip),
+        "total_nights": sum(stay.nights for stay in trip),
+        "cities_visited": [stay.city for stay in trip]
+    }

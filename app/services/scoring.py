@@ -5,6 +5,16 @@ from dataclasses import dataclass
 from enum import Enum
 
 class ScoreFactors(Enum):
+    """
+    Enumeration of factors used in search result scoring.
+    
+    Attributes:
+        PRICE: Price-related scoring factor
+        POPULARITY: Destination popularity factor
+        SEASONALITY: Seasonal timing factor
+        HISTORICAL_DEMAND: Historical booking demand factor
+        AVAILABILITY: Current availability factor
+    """
     PRICE = "price"
     POPULARITY = "popularity"
     SEASONALITY = "seasonality"
@@ -13,12 +23,31 @@ class ScoreFactors(Enum):
 
 @dataclass
 class SearchResultScore:
+    """
+    Data class to hold scoring results for a search result.
+    
+    Attributes:
+        raw_score (float): Unweighted average of all factor scores
+        weighted_score (float): Final score after applying factor weights
+        factor_scores (Dict[ScoreFactors, float]): Individual scores for each factor
+    """
     raw_score: float
     weighted_score: float
     factor_scores: Dict[ScoreFactors, float]
 
 class SearchScorer:
+    """
+    Handles the scoring of search results based on multiple factors.
+    
+    This class implements a comprehensive scoring system that considers
+    multiple factors including price, popularity, seasonality, and more.
+    """
+    
     def __init__(self):
+        """
+        Initialize the SearchScorer with default weight configuration
+        and seasonality data.
+        """
         self.weight_config = {
             ScoreFactors.PRICE: 0.35,
             ScoreFactors.POPULARITY: 0.25,
@@ -27,21 +56,23 @@ class SearchScorer:
             ScoreFactors.AVAILABILITY: 0.10
         }
         
-        # Initialize seasonality data (could be loaded from external source)
         self.seasonality_data = self._initialize_seasonality_data()
         
     def _initialize_seasonality_data(self) -> Dict[str, Dict[int, float]]:
-        """Initialize seasonality scores for destinations by month."""
-        # This could be loaded from a database or external source
+        """
+        Initialize seasonality scores for destinations by month.
+        
+        Returns:
+            Dict[str, Dict[int, float]]: Mapping of destination types to their
+            monthly seasonality scores (1-12).
+        """
         return {
             "default": {month: 1.0 for month in range(1, 13)},
-            # Example for a beach destination
             "beach": {
                 1: 0.6, 2: 0.6, 3: 0.7, 4: 0.8, 5: 0.9,
                 6: 1.0, 7: 1.0, 8: 1.0, 9: 0.9, 10: 0.8,
                 11: 0.7, 12: 0.6
             },
-            # Example for a ski destination
             "ski": {
                 1: 1.0, 2: 1.0, 3: 0.9, 4: 0.7, 5: 0.5,
                 6: 0.4, 7: 0.4, 8: 0.4, 9: 0.5, 10: 0.7,
@@ -50,13 +81,33 @@ class SearchScorer:
         }
 
     def _normalize_score(self, value: float, min_val: float, max_val: float) -> float:
-        """Normalize a score between 0 and 1."""
+        """
+        Normalize a score between 0 and 1.
+        
+        Args:
+            value: Raw value to normalize
+            min_val: Minimum possible value
+            max_val: Maximum possible value
+            
+        Returns:
+            float: Normalized score between 0 and 1
+        """
         if max_val == min_val:
             return 1.0
         return (value - min_val) / (max_val - min_val)
 
     def _calculate_price_score(self, price: float, avg_price: float, std_price: float) -> float:
-        """Calculate price score using a normal distribution."""
+        """
+        Calculate price score using a normal distribution.
+        
+        Args:
+            price: Price to score
+            avg_price: Average price in the dataset
+            std_price: Standard deviation of prices
+            
+        Returns:
+            float: Price score between 0 and 1
+        """
         if price <= 0 or avg_price <= 0:
             return 0.0
         
@@ -66,15 +117,31 @@ class SearchScorer:
         return min(max(score, 0.0), 1.0)
 
     def _calculate_seasonality_score(self, destination: str, date: datetime) -> float:
-        """Calculate seasonality score based on destination and time of year."""
+        """
+        Calculate seasonality score based on destination and time of year.
+        
+        Args:
+            destination: Destination code or name
+            date: Travel date
+            
+        Returns:
+            float: Seasonality score between 0 and 1
+        """
         destination_type = "default"  # This could be determined by destination characteristics
         month = date.month
         return self.seasonality_data.get(destination_type, self.seasonality_data["default"])[month]
 
-    def score_search_result(self, 
-                          result: Dict[str, Any],
-                          context: Dict[str, Any]) -> SearchResultScore:
-        """Score a single search result based on multiple factors."""
+    def score_search_result(self, result: Dict[str, Any], context: Dict[str, Any]) -> SearchResultScore:
+        """
+        Score a single search result based on multiple factors.
+        
+        Args:
+            result: Search result to score
+            context: Contextual data for scoring (averages, statistics, etc.)
+            
+        Returns:
+            SearchResultScore: Comprehensive scoring result
+        """
         factor_scores = {}
         
         # Price scoring
@@ -123,10 +190,18 @@ class SearchScorer:
             factor_scores=factor_scores
         )
 
-    def score_search_results(self, 
-                           results: List[Dict[str, Any]],
+    def score_search_results(self, results: List[Dict[str, Any]], 
                            search_context: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Score and sort a list of search results."""
+        """
+        Score and sort a list of search results.
+        
+        Args:
+            results: List of search results to score
+            search_context: Context data for scoring calculations
+            
+        Returns:
+            List[Dict[str, Any]]: Scored and sorted results
+        """
         # Calculate context statistics
         prices = [float(r.get("price", 0)) for r in results if r.get("price", 0) > 0]
         search_context = {

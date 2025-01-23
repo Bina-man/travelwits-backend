@@ -9,8 +9,21 @@ from fastapi import HTTPException
 logger = logging.getLogger(__name__)
 
 class TravelCache:
+    """
+    Redis-based caching system for travel search results.
+    
+    Provides caching functionality with TTL support and pattern-based invalidation.
+    Uses Redis as the underlying cache storage system.
+    """
+
     def __init__(self, redis_url: str = "redis://localhost:6379/0", default_ttl: int = 3600):
-        """Initialize Redis cache with connection and default TTL."""
+        """
+        Initialize Redis cache with connection and default TTL.
+
+        Args:
+            redis_url: Redis connection URL
+            default_ttl: Default time-to-live in seconds for cached items
+        """
         try:
             self.redis_client = redis.from_url(redis_url)
             self.default_ttl = default_ttl
@@ -19,7 +32,17 @@ class TravelCache:
             self.redis_client = None
 
     def _generate_cache_key(self, prefix: str, *args, **kwargs) -> str:
-        """Generate a unique cache key based on function arguments."""
+        """
+        Generate a unique cache key based on function arguments.
+
+        Args:
+            prefix: Prefix for the cache key
+            *args: Positional arguments to include in key generation
+            **kwargs: Keyword arguments to include in key generation
+
+        Returns:
+            str: MD5 hash of the generated key string
+        """
         key_parts = [prefix]
         if args:
             key_parts.append(str(args))
@@ -31,7 +54,16 @@ class TravelCache:
         return hashlib.md5(key_string.encode()).hexdigest()
 
     def cache_decorator(self, ttl: Optional[int] = None, prefix: Optional[str] = None):
-        """Decorator for caching function results."""
+        """
+        Decorator for caching function results.
+
+        Args:
+            ttl: Time-to-live in seconds for cached results
+            prefix: Custom prefix for cache keys
+
+        Returns:
+            Callable: Decorated function with caching capability
+        """
         def decorator(func: Callable):
             @wraps(func)
             async def wrapper(*args, **kwargs):
@@ -71,7 +103,18 @@ class TravelCache:
         return decorator
 
     def invalidate_pattern(self, pattern: str) -> int:
-        """Invalidate all cache keys matching the given pattern."""
+        """
+        Invalidate all cache keys matching the given pattern.
+
+        Args:
+            pattern: Redis key pattern to match for invalidation
+
+        Returns:
+            int: Number of keys invalidated
+
+        Raises:
+            HTTPException: If cache invalidation fails
+        """
         if not self.redis_client:
             return 0
             

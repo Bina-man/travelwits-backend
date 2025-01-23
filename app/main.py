@@ -8,13 +8,22 @@ from pathlib import Path
 from .api.routes import router, TravelAPI
 
 def setup_logging():
+    """
+    Configure application-wide logging settings.
+    
+    Creates a logs directory and sets up both file and console logging handlers.
+    File logging uses rotation to manage disk space.
+    
+    File Handler: Detailed DEBUG level logs with rotation
+    Console Handler: Basic INFO level logs
+    """
     # Create logs directory if it doesn't exist
     logs_dir = Path(__file__).resolve().parent.parent / "logs"
     logs_dir.mkdir(exist_ok=True)
 
     # Configure logging
     logging.basicConfig(
-        level=logging.DEBUG,  # Changed to DEBUG for more detailed logs
+        level=logging.DEBUG,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=[
             # Console handler with INFO level
@@ -34,7 +43,11 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 # Initialize FastAPI app
-app = FastAPI(title="Travel Search API")
+app = FastAPI(
+    title="Travel Search API",
+    description="API for searching and booking multi-city travel packages",
+    version="1.0.0"
+)
 
 # Add CORS middleware
 app.add_middleware(
@@ -51,6 +64,18 @@ from .services.stats import SearchStats
 
 @app.on_event("startup")
 async def startup_event():
+    """
+    Initialize application services on startup.
+    
+    Performs the following tasks:
+    1. Loads flight and hotel data from JSON files
+    2. Initializes the statistics collector
+    3. Sets up the Travel API service
+    
+    Raises:
+        FileNotFoundError: If data files are missing
+        JSONDecodeError: If data files contain invalid JSON
+    """
     try:
         # Get the base directory path
         base_dir = Path(__file__).resolve().parent.parent
@@ -66,10 +91,10 @@ async def startup_event():
             hotels = json.load(f)
         logger.info(f"Loaded {len(hotels)} hotels")
 
+        # Initialize services
         router.stats = SearchStats()
         logger.info("Successfully initialized Stats Collector")
         
-        # Initialize TravelAPI and attach to router
         router.travel_api = TravelAPI(flights, hotels)
         logger.info("Successfully initialized Travel API")
         
