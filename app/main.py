@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 from .api.routes import router, TravelAPI
 
+
 def setup_logging():
     """
     Configure application-wide logging settings.

@@ -35,16 +35,6 @@ class TravelAPI:
         self.multi_city_engine = self._initialize_multi_city_engine(flights, hotels)
     
     def _initialize_engine(self, raw_flights: List[Dict], raw_hotels: List[Dict]) -> TravelSearchEngine:
-        """
-        Initialize the single-destination search engine.
-        
-        Args:
-            raw_flights: List of flight dictionaries
-            raw_hotels: List of hotel dictionaries
-            
-        Returns:
-            TravelSearchEngine: Initialized search engine
-        """
         flights = [
             Flight(
                 id=f['id'],
@@ -57,31 +47,26 @@ class TravelAPI:
             ) for f in raw_flights
         ]
         
-        hotels = [
-            Hotel(
-                id=h['id'],
-                name=h['name'],
-                city_code=h['city_code'],
-                stars=int(h['stars']),
-                rating=float(h['rating']),
-                price_per_night=float(h['price_per_night']),
-                amenities=h['amenities']
-            ) for h in raw_hotels
-        ]
+        hotels = []
+        for h in raw_hotels:
+            try:
+                hotel = Hotel(
+                    id=h['id'],
+                    name=h['name'],
+                    city_code=h['city_code'],
+                    stars=int(h['stars']),
+                    rating=min(float(h['rating']), 5.0),
+                    price_per_night=float(h['price_per_night']),
+                    amenities=h['amenities']
+                )
+                hotels.append(hotel)
+            except ValueError as e:
+                logger.warning(f"Skipping invalid hotel {h['id']}: {str(e)}")
+                continue
         
         return TravelSearchEngine(flights, hotels)
-    
+
     def _initialize_multi_city_engine(self, raw_flights: List[Dict], raw_hotels: List[Dict]) -> MultiCitySearchEngine:
-        """
-        Initialize the multi-city search engine.
-        
-        Args:
-            raw_flights: List of flight dictionaries
-            raw_hotels: List of hotel dictionaries
-            
-        Returns:
-            MultiCitySearchEngine: Initialized multi-city search engine
-        """
         flights = [
             MultiCityFlight(
                 id=f['id'],
@@ -96,23 +81,26 @@ class TravelAPI:
         
         hotels_by_city = {}
         for h in raw_hotels:
-            city_code = h['city_code']
-            if city_code not in hotels_by_city:
-                hotels_by_city[city_code] = []
-            
-            hotel = Hotel(
-                id=h['id'],
-                name=h['name'],
-                city_code=city_code,
-                stars=int(h['stars']),
-                rating=float(h['rating']),
-                price_per_night=float(h['price_per_night']),
-                amenities=h['amenities']
-            )
-            hotels_by_city[city_code].append(hotel)
+            try:
+                city_code = h['city_code']
+                if city_code not in hotels_by_city:
+                    hotels_by_city[city_code] = []
+                
+                hotel = Hotel(
+                    id=h['id'],
+                    name=h['name'],
+                    city_code=city_code,
+                    stars=int(h['stars']),
+                    rating=min(float(h['rating']), 5.0),
+                    price_per_night=float(h['price_per_night']),
+                    amenities=h['amenities']
+                )
+                hotels_by_city[city_code].append(hotel)
+            except ValueError as e:
+                logger.warning(f"Skipping invalid hotel {h['id']}: {str(e)}")
+                continue
         
         return MultiCitySearchEngine(flights, hotels_by_city)
-    
 
 @router.get("/search")
 async def search_trips(
