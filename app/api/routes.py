@@ -1,9 +1,9 @@
 # api/routes.py
 from ..models.multi_city import MultiCityFlight, MultiCitySearchEngine
 from fastapi import APIRouter, HTTPException, Query
-from typing import List, Dict, Optional
+from typing import List, Dict
 import logging
-import time  # Add this import for time.time()
+import time
 from datetime import datetime 
 from ..services.search import TravelSearchEngine
 from ..models.domain import Flight, Hotel
@@ -212,7 +212,7 @@ def _format_trip_package(trip):
         "return_flight": _format_flight(trip.return_flight),
         "hotel": _format_hotel(trip.hotel),
         "total_cost": trip.total_cost,
-        "score": trip.calculate_score(),
+        "score": getattr(trip, 'score', trip.calculate_score()),
         "nights": trip.nights
     }
 
