@@ -2,8 +2,9 @@ from typing import List
 from ...models.domain import Flight, Hotel
 from .index_manager import TravelIndexManager
 from .trip_search import TripSearch
-from .trip_scorer import TripScorer
+from ..scoring.trip_scorer import TripScorer
 from ..cache import TravelCache
+
 
 class TravelSearchEngine:
     def __init__(self, flights: List[Flight], hotels: List[Hotel]):
