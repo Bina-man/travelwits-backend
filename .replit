@@ -1,0 +1,17 @@
+run = "redis-server & uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload"
+modules = ["python-3.11"]
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+run = ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload"]
+
+[[ports]]
+localPort = 6379
+externalPort = 3000
+
+[[ports]]
+localPort = 8080
+externalPort = 80
+

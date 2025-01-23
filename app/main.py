@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from .services.stats import SearchStats
 from fastapi.middleware.cors import CORSMiddleware
 import json
 import logging
@@ -34,10 +35,9 @@ def setup_logging():
                 logs_dir / "travel_search.log",
                 maxBytes=10485760,  # 10MB
                 backupCount=5,
-                encoding='utf-8'
-            )
-        ]
-    )
+                encoding='utf-8')
+        ])
+
 
 # Initialize logging
 setup_logging()
@@ -47,8 +47,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="Travel Search API",
     description="API for searching and booking multi-city travel packages",
-    version="1.0.0"
-)
+    version="1.0.0")
 
 # Add CORS middleware
 app.add_middleware(
@@ -61,7 +60,7 @@ app.add_middleware(
 
 # Include API routes
 app.include_router(router)
-from .services.stats import SearchStats
+
 
 @app.on_event("startup")
 async def startup_event():
@@ -80,14 +79,16 @@ async def startup_event():
     try:
         # Get the base directory path
         base_dir = Path(__file__).resolve().parent.parent
-        
+
         # Load data files using absolute paths
-        logger.debug(f"Loading flights from {base_dir / 'data' / 'flights.json'}")
+        logger.debug(
+            f"Loading flights from {base_dir / 'data' / 'flights.json'}")
         with open(base_dir / "data" / "flights.json") as f:
             flights = json.load(f)
         logger.info(f"Loaded {len(flights)} flights")
-        
-        logger.debug(f"Loading hotels from {base_dir / 'data' / 'hotels.json'}")
+
+        logger.debug(
+            f"Loading hotels from {base_dir / 'data' / 'hotels.json'}")
         with open(base_dir / "data" / "hotels.json") as f:
             hotels = json.load(f)
         logger.info(f"Loaded {len(hotels)} hotels")
@@ -95,10 +96,10 @@ async def startup_event():
         # Initialize services
         router.stats = SearchStats()
         logger.info("Successfully initialized Stats Collector")
-        
+
         router.travel_api = TravelAPI(flights, hotels)
         logger.info("Successfully initialized Travel API")
-        
+
     except FileNotFoundError as e:
         logger.error(f"Error: Could not find data files - {str(e)}")
         raise
@@ -108,6 +109,7 @@ async def startup_event():
     except Exception as e:
         logger.error(f"Error during startup: {str(e)}", exc_info=True)
         raise
+
 
 if __name__ == "__main__":
     import uvicorn
