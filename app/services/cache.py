@@ -1,3 +1,4 @@
+import os
 from functools import wraps
 import json
 from typing import Optional, Callable
@@ -12,7 +13,7 @@ logger = logging.getLogger(__name__)
 class TravelCache:
     def __init__(self, redis_url: str = "redis://localhost:6379/0", default_ttl: int = 3600):
         try:
-            self.redis_client = redis.from_url(redis_url)
+            self.redis_client = redis.from_url(os.getenv('REDIS_URL', 'redis://localhost:6379/0'))
             self.default_ttl = default_ttl
         except redis.RedisError as e:
             logger.warning(f"Failed to initialize Redis connection: {str(e)}. Caching will be disabled.")
