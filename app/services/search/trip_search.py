@@ -7,6 +7,7 @@ from .criteria import SearchCriteria
 from .index_manager import TravelIndexManager
 from ..scoring.trip_scorer import TripScorer
 from .criteria import SearchCriteria
+from ...config.config import DEFAULT_CACHE_TTL
 
 
 logger = logging.getLogger(__name__)
@@ -23,7 +24,7 @@ class TripSearch:
         self.cache = cache
 
     async def search(self, criteria: SearchCriteria) -> List[TripPackage]:
-        @self.cache.cache_decorator(ttl=1800, prefix="search_trips")
+        @self.cache.cache_decorator(ttl=DEFAULT_CACHE_TTL, prefix="search_trips")
         async def _cached_search(criteria: SearchCriteria):
             logger.info(
                 f"Starting search: origin={criteria.origin}, "

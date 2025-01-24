@@ -1,13 +1,14 @@
 from typing import Dict
+from app.config.config import FLIGHT_TIME_SCORES, HOTEL_WEIGHTS, MAX_HOTEL_SCORE, STOP_PENALTY, SCORING_WEIGHTS
 from ...models.domain import Flight, TripPackage
 from dataclasses import dataclass
 
 @dataclass
 class ScoreWeights:
-    price: float = 0.35
-    flight: float = 0.40
-    hotel: float = 0.20
-    destination: float = 0.05
+    price: float = SCORING_WEIGHTS['PRICE']
+    flight: float = SCORING_WEIGHTS['FLIGHT']
+    hotel: float = SCORING_WEIGHTS['HOTEL']
+    destination: float = SCORING_WEIGHTS['DESTINATION']
 
 class TripScorer:
     def __init__(self, weights: ScoreWeights = ScoreWeights()):
@@ -44,28 +45,22 @@ class TripScorer:
         def score_flight(flight: Flight) -> float:
             hour = flight.departure_time.hour
             
-            if 8 <= hour <= 11:
-                time_score = 100
-            elif 11 < hour <= 16:
-                time_score = 80
-            elif 6 <= hour < 8:
-                time_score = 60
-            elif 16 < hour <= 21:
-                time_score = 50
-            else:
-                time_score = 20
+            for _, (start, end, score) in FLIGHT_TIME_SCORES.items():
+                if start <= hour <= end:
+                    time_score = score
+                    break
             
-            stops_penalty = len(flight.stops) * 40
+            stops_penalty = len(flight.stops) * STOP_PENALTY
             return max(0, time_score - stops_penalty)
 
         return (score_flight(trip.outbound_flight) + 
                 score_flight(trip.return_flight)) / 2
 
     def _calculate_hotel_score(self, trip: TripPackage) -> float:
-        return min(100, (
-            (trip.hotel.stars * 18) +
-            (trip.hotel.rating * 10) +
-            (len(trip.hotel.amenities) * 7)
+        return min(MAX_HOTEL_SCORE, (
+            (trip.hotel.stars * HOTEL_WEIGHTS['STARS_MULTIPLIER']) +
+            (trip.hotel.rating * HOTEL_WEIGHTS['RATING_MULTIPLIER']) +
+            (len(trip.hotel.amenities) * HOTEL_WEIGHTS['AMENITY_MULTIPLIER'])
         ))
 
     def _calculate_destination_score(self, trip: TripPackage, context: Dict) -> float:

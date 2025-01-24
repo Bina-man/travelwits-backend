@@ -1,11 +1,11 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import List, Optional
 import logging
-import time
 from pydantic import BaseModel
 
 from .serializers import TravelSerializer
-from ..services.travel_api import TravelAPI
+from ..services.travel_api import TravelAPI # API definition for travel service. 
+from ..config.config import MIN_NIGHTS, MAX_NIGHTS, AIRPORT_CODE_LENGTH
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -24,8 +24,8 @@ class MultiCitySearchRequest(BaseModel):
 
 @router.get("/search")
 async def search_trips(
-    origin: str = Query(..., min_length=3, max_length=3),
-    nights: int = Query(..., ge=1, le=30),
+    origin: str = Query(..., min_length=AIRPORT_CODE_LENGTH, max_length=AIRPORT_CODE_LENGTH),
+    nights: int = Query(..., ge=MIN_NIGHTS, le=MAX_NIGHTS),
     budget: float = Query(..., ge=0)
 ):
     try:

@@ -4,7 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 import json
 import logging
 from logging.handlers import RotatingFileHandler
-import os
 from pathlib import Path
 from .api.routes import router, TravelAPI
 
