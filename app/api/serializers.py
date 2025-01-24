@@ -3,14 +3,14 @@ from ..models.domain import TripPackage, Flight, Hotel
 
 class TravelSerializer:
     @staticmethod
-    def format_trip_package(trip: TripPackage) -> Dict[str, Any]:
+    def format_trip_package(trip: TripPackage) -> dict:
         return {
             "destination": trip.destination,
-            "outbound_flight": TravelSerializer.format_flight(trip.outbound_flight),
-            "return_flight": TravelSerializer.format_flight(trip.return_flight),
+            "outbound_flights": [TravelSerializer.format_flight(f) for f in trip.outbound_path],
+            "return_flights": [TravelSerializer.format_flight(f) for f in trip.return_path],
             "hotel": TravelSerializer.format_hotel(trip.hotel),
             "total_cost": trip.total_cost,
-            "score": getattr(trip, 'score', trip.calculate_score()),
+            "score": trip.score,
             "nights": trip.nights
         }
     
