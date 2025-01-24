@@ -1,3 +1,4 @@
+from collections import deque
 import heapq
 import logging
 from typing import List, Dict, Any
@@ -86,9 +87,35 @@ class TripSearch:
                             )
                             routes.extend(new_paths)
             return routes
+        
+        def find_routes_bfs(origin: str, final_dest: str) -> List[List[Flight]]:
+            queue = deque([(origin, [], 0)])  # (city, path, cost)
+            routes = []
+            visited = set([origin])
+            
+            while queue:
+                current_city, path, cost = queue.popleft()
+                
+                if current_city == final_dest and path:
+                    routes.append(path)
+                    continue
+                    
+                for next_dest, flights in self.indexes.flights_by_route.items():
+                    if next_dest[0] == current_city and next_dest[1] not in visited:
+                        for flight in flights:
+                            new_cost = cost + flight.price
+                            if new_cost <= criteria.budget:
+                                visited.add(next_dest[1])
+                                queue.append((next_dest[1], path + [flight], new_cost))
+                                
+            return routes
 
-        outbound_routes = find_routes(criteria.origin, dest, {criteria.origin}, [], 0)
-        return_routes = find_routes(dest, criteria.origin, {dest}, [], 0)
+        # outbound_routes = find_routes_bfs(criteria.origin, dest) BFS for shortest path
+        # return_routes = find_routes_bfs(dest, criteria.origin) BFS for shortest path
+        
+        outbound_routes = find_routes(criteria.origin, dest, {criteria.origin}, [], 0) # DFS for all paths for varied outputs
+        return_routes = find_routes(dest, criteria.origin, {dest}, [], 0) # DFS for all paths for varied outputs
+
         hotels = self._filter_valid_hotels(
             self.indexes.hotels_by_city.get(dest, []),
             criteria.budget,

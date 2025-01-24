@@ -22,7 +22,7 @@ class TravelAPI:
                 arrival_time=datetime.strptime(f['arrival_time'], '%H:%M'),
                 price=float(f['price']),
                 stops=f.get('stops', [])
-            ) for f in raw_flights
+            ) for f in raw_flights['flights']
         ]
         
         hotels = []
@@ -54,7 +54,7 @@ class TravelAPI:
                 arrival_time=datetime.strptime(f['arrival_time'], '%H:%M'),
                 price=float(f['price']),
                 stops=f.get('stops', [])
-            ) for f in raw_flights
+            ) for f in raw_flights['flights'] 
         ]
         
         hotels_by_city = {}
