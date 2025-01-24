@@ -11,15 +11,51 @@
     },
     {
       "id": "flight102",
-      "from": "LAX",
-      "to": "JFK",
+      "from": "JFK",
+      "to": "LAX",
       "stops": ["DEN"],
-      "price": 480,
-      "departure_time": "23:15",
-      "arrival_time": "09:30"
+      "price": 385,
+      "departure_time": "06:15",
+      "arrival_time": "11:30"
     },
     {
       "id": "flight103",
+      "from": "JFK",
+      "to": "LAX",
+      "stops": ["ORD", "PHX"],
+      "price": 310,
+      "departure_time": "07:45",
+      "arrival_time": "15:20"
+    },
+    {
+      "id": "flight104",
+      "from": "LAX",
+      "to": "JFK",
+      "stops": [],
+      "price": 440,
+      "departure_time": "23:15",
+      "arrival_time": "07:30"
+    },
+    {
+      "id": "flight105",
+      "from": "LAX",
+      "to": "JFK",
+      "stops": ["DFW"],
+      "price": 395,
+      "departure_time": "14:20",
+      "arrival_time": "23:45"
+    },
+    {
+      "id": "flight106",
+      "from": "LAX",
+      "to": "JFK",
+      "stops": ["LAS", "ORD"],
+      "price": 320,
+      "departure_time": "10:30",
+      "arrival_time": "22:15"
+    },
+    {
+      "id": "flight107",
       "from": "JFK",
       "to": "LHR",
       "stops": [],
@@ -28,16 +64,52 @@
       "arrival_time": "07:45"
     },
     {
-      "id": "flight104",
+      "id": "flight108",
+      "from": "JFK",
+      "to": "LHR",
+      "stops": ["BOS"],
+      "price": 580,
+      "departure_time": "15:45",
+      "arrival_time": "05:30"
+    },
+    {
+      "id": "flight109",
+      "from": "JFK",
+      "to": "LHR",
+      "stops": ["YYZ", "DUB"],
+      "price": 495,
+      "departure_time": "11:20",
+      "arrival_time": "08:45"
+    },
+    {
+      "id": "flight110",
       "from": "LHR",
       "to": "NRT",
-      "stops": ["ORD"],
+      "stops": ["IST"],
       "price": 890,
       "departure_time": "06:15",
       "arrival_time": "16:30"
     },
     {
-      "id": "flight105",
+      "id": "flight111",
+      "from": "LHR",
+      "to": "NRT",
+      "stops": ["DXB", "HKG"],
+      "price": 820,
+      "departure_time": "09:45",
+      "arrival_time": "22:15"
+    },
+    {
+      "id": "flight112",
+      "from": "LHR",
+      "to": "NRT",
+      "stops": ["FRA", "ICN", "PVG"],
+      "price": 755,
+      "departure_time": "12:30",
+      "arrival_time": "23:45"
+    },
+    {
+      "id": "flight113",
       "from": "NRT",
       "to": "SYD",
       "stops": [],
@@ -46,7 +118,25 @@
       "arrival_time": "21:15"
     },
     {
-      "id": "flight106",
+      "id": "flight114",
+      "from": "NRT",
+      "to": "SYD",
+      "stops": ["MNL"],
+      "price": 755,
+      "departure_time": "13:30",
+      "arrival_time": "01:45"
+    },
+    {
+      "id": "flight115",
+      "from": "NRT",
+      "to": "SYD",
+      "stops": ["TPE", "BNE"],
+      "price": 680,
+      "departure_time": "08:15",
+      "arrival_time": "23:30"
+    },
+    {
+      "id": "flight116",
       "from": "SYD",
       "to": "LAX",
       "stops": [],
@@ -55,40 +145,40 @@
       "arrival_time": "10:45"
     },
     {
-      "id": "flight107",
+      "id": "flight117",
+      "from": "SYD",
+      "to": "LAX",
+      "stops": ["HNL"],
+      "price": 850,
+      "departure_time": "11:20",
+      "arrival_time": "09:30"
+    },
+    {
+      "id": "flight118",
+      "from": "SYD",
+      "to": "LAX",
+      "stops": ["AKL", "PPT", "HNL"],
+      "price": 780,
+      "departure_time": "06:45",
+      "arrival_time": "08:15"
+    },
+    {
+      "id": "flight119",
       "from": "LAX",
       "to": "NRT",
-      "stops": ["PHX"],
+      "stops": ["SEA"],
       "price": 780,
       "departure_time": "07:00",
       "arrival_time": "17:15"
     },
     {
-      "id": "flight108",
-      "from": "JFK",
-      "to": "SYD",
-      "stops": ["LAX"],
-      "price": 1350,
-      "departure_time": "11:30",
-      "arrival_time": "11:45"
-    },
-    {
-      "id": "flight109",
-      "from": "LHR",
-      "to": "LAX",
-      "stops": [],
-      "price": 825,
-      "departure_time": "15:45",
-      "arrival_time": "19:00"
-    },
-    {
-      "id": "flight110",
-      "from": "NRT",
-      "to": "JFK",
-      "stops": [],
-      "price": 960,
-      "departure_time": "09:00",
-      "arrival_time": "08:15"
+      "id": "flight120",
+      "from": "LAX",
+      "to": "NRT",
+      "stops": ["HNL", "GUM"],
+      "price": 720,
+      "departure_time": "09:30",
+      "arrival_time": "21:45"
     }
   ]
 }

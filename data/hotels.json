@@ -6,11 +6,7 @@
     "city_code": "JFK",
     "stars": 3,
     "rating": 7.0,
-    "amenities": [
-      "Free Wi-Fi",
-      "Restaurant",
-      "Bar"
-    ],
+    "amenities": ["Free Wi-Fi", "Restaurant", "Bar"],
     "price_per_night": 120
   },
   {
@@ -20,11 +16,87 @@
     "city_code": "LAX",
     "stars": 4,
     "rating": 7.1,
-    "amenities": [
-      "Free Wi-Fi",
-      "Fitness center",
-      "Room service"
-    ],
+    "amenities": ["Free Wi-Fi", "Fitness center", "Room service"],
     "price_per_night": 130
+  },
+  {
+    "id": "hotel28",
+    "name": "Grand Plaza LAX",
+    "address": "5711 W Century Blvd, Los Angeles, CA 90045, USA", 
+    "city_code": "LAX",
+    "stars": 5,
+    "rating": 8.5,
+    "amenities": ["Free Wi-Fi", "Pool", "Spa", "Restaurant", "Bar", "Fitness center", "Airport shuttle"],
+    "price_per_night": 250
+  },
+  {
+    "id": "hotel29",
+    "name": "Heathrow Suites",
+    "address": "Bath Road, London, UK TW6 2AQ",
+    "city_code": "LHR", 
+    "stars": 4,
+    "rating": 8.0,
+    "amenities": ["Free Wi-Fi", "Restaurant", "Bar", "Fitness center", "Airport shuttle"],
+    "price_per_night": 180
+  },
+  {
+    "id": "hotel30",
+    "name": "Narita Gateway",
+    "address": "1-1 Furugome, Narita, Chiba 282-0004, Japan",
+    "city_code": "NRT",
+    "stars": 4,
+    "rating": 7.8,
+    "amenities": ["Free Wi-Fi", "Restaurant", "Spa", "Airport shuttle"],
+    "price_per_night": 160
+  },
+  {
+    "id": "hotel31",
+    "name": "Sydney Harbor View",
+    "address": "176 Cumberland Street, Sydney NSW 2000, Australia",
+    "city_code": "SYD",
+    "stars": 5,
+    "rating": 9.2,
+    "amenities": ["Free Wi-Fi", "Pool", "Spa", "Restaurant", "Bar", "Fitness center", "Ocean view"],
+    "price_per_night": 320
+  },
+  {
+    "id": "hotel32",
+    "name": "Budget Inn JFK",
+    "address": "123 Queens Blvd, Queens, NY 11435, USA",
+    "city_code": "JFK",
+    "stars": 2,
+    "rating": 6.5,
+    "amenities": ["Free Wi-Fi", "Airport shuttle"],
+    "price_per_night": 85
+  },
+  {
+    "id": "hotel33",
+    "name": "LAX Airport Lodge",
+    "address": "9620 Airport Blvd, Los Angeles, CA 90045, USA",
+    "city_code": "LAX",
+    "stars": 3,
+    "rating": 7.2,
+    "amenities": ["Free Wi-Fi", "Restaurant", "Airport shuttle", "Parking"],
+    "price_per_night": 140
+  },
+  {
+    "id": "hotel34",
+    "name": "Luxury Heathrow",
+    "address": "Western Perimeter Road, London, UK TW6 2GW",
+    "city_code": "LHR",
+    "stars": 5,
+    "rating": 8.9,
+    "amenities": ["Free Wi-Fi", "Pool", "Spa", "Restaurant", "Bar", "Fitness center", "Business center", "Airport shuttle"],
+    "price_per_night": 280
+  },
+  {
+    "id": "hotel35",
+    "name": "NRT Business Hotel",
+    "address": "456 Tokko, Narita, Chiba 286-0106, Japan",
+    "city_code": "NRT",
+    "stars": 3,
+    "rating": 7.5,
+    "amenities": ["Free Wi-Fi", "Restaurant", "Business center", "Airport shuttle"],
+    "price_per_night": 120
   }
 ]
