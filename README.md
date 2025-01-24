@@ -2,6 +2,12 @@
 
 A FastAPI-based search engine for finding flight and hotel combinations within a budget.
 
+## Local documentations 
+These are important parts of my work ...
+
+[![Search Algorithm](https://img.shields.io/badge/Search-Algorithm-blue?style=flat&logo=python)](./docs/searchingAlgorthim.md)
+[![Caching System](https://img.shields.io/badge/Cache-System-red?style=flat&logo=redis)](./docs/config.md) 
+[![Travel Metrics](https://img.shields.io/badge/Travel-Metrics-green?style=flat&logo=fastapi)](./docs/travel_scoring_metrics.md)
 ## Quick Start
 
 1. **Setup**
