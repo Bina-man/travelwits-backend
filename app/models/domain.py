@@ -42,33 +42,29 @@ class Hotel(BaseModel):
 class TripPackage(BaseModel):
     score: Optional[float] = None
     destination: str = Field(..., min_length=MIN_NIGHTS, max_length=MAX_NIGHTS)
-    outbound_flight: Flight
-    return_flight: Flight
+    outbound_path: List[Flight] = Field(default_factory=list)
+    return_path: List[Flight] = Field(default_factory=list)
+    total_cost: float = 0
     hotel: Hotel
     nights: int = Field(..., ge=HOTEL_STAY['MIN_NIGHTS'], le=HOTEL_STAY['MAX_NIGHTS'])
 
     @property
+    def outbound_flight(self) -> Flight:
+        return self.outbound_path[0] if self.outbound_path else None
+        
+    @property
+    def return_flight(self) -> Flight:
+        return self.return_path[0] if self.return_path else None
+
+    @property
     def total_cost(self) -> float:
-        return (self.outbound_flight.price + 
-                self.return_flight.price + 
+        return (sum(f.price for f in self.outbound_path) + 
+                sum(f.price for f in self.return_path) + 
                 self.hotel.price_per_night * self.nights)
 
-    def calculate_score(self) -> float:
-        return sum(score * weight for score, weight in zip(
-            [self._calculate_price_score(),
-             self._calculate_comfort_score(),
-             self._calculate_convenience_score()],
-            SCORING_WEIGHTS.values()
-        ))
-
-    def _calculate_price_score(self) -> float:
-        return 1000 / (self.total_cost / self.nights)
-
-    def _calculate_comfort_score(self) -> float:
-        return self.hotel.rating * self.hotel.stars + len(self.hotel.amenities) * 0.5
-
     def _calculate_convenience_score(self) -> float:
-        score = 10.0 - len(self.outbound_flight.stops) * 2 - len(self.return_flight.stops) * 2
+        total_stops = sum(len(f.stops) for f in self.outbound_path + self.return_path)
+        score = 10.0 - total_stops * 2
         if 8 <= self.outbound_flight.departure_time.hour <= 20:
             score += 2
         return max(score, 0)
